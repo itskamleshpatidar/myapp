@@ -23,12 +23,11 @@ jobs:
       - restore_cache:
           key: app-{{ checksum "Gemfile.lock" }}
 
+      # Install bundler
       - run:
-          name: Configure bundler
-          command: |
-            echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
-            source $BASH_ENV
-            gem install bundler
+          name: Install Bundler
+          command: gem install bundler -v "$BUNDLER_VERSION"
+
       # Yarn install
       - run:
           name: Yarn install
@@ -63,6 +62,7 @@ jobs:
               password: postgres
               host: localhost
             ' > config/database.yml
+
       - run:
           name: Setup Database
           command: bundle exec rake db:create db:schema:load --trace
@@ -77,13 +77,15 @@ jobs:
           name: Run Brakeman
           command: bundle exec brakeman
 
-      # Rspec
+      # Setup Code Climate Test Reporter
       - run:
           name: Setup Code Climate Test Reporter
           command: |
             mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
             chmod +x ./tmp/cc-test-reporter
+
+      # Rspec
       - run:
           name: Run RSpec
           command: |
@@ -104,5 +106,5 @@ jobs:
       - run:
           name: Upload coverage results to Code Climate
           command: |
-            ./tmp/cc-test-reporter format-coverage -t simplecov $CIRCLE_ARTIFACTS/coverage/.resultset.json
+            ./tmp/cc-test-reporter format-coverage -t simplecov /tmp/coverage/.resultset.json
             ./tmp/cc-test-reporter upload-coverage
