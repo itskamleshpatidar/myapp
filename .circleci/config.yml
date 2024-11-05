@@ -3,18 +3,23 @@ version: 2.1
 jobs:
   build:
     working_directory: ~/app
+    resource_class: 'medium+'
+    parallelism: 3
     docker:
-      - image: cimg/ruby:3.3.5.node
+      - image: cimg/ruby:3.3.5-node
         environment:
           BUNDLE_JOBS: 3
           BUNDLE_PATH: vendor/bundle
           BUNDLE_RETRY: 3
           BUNDLER_VERSION: 2.4.19
           RAILS_ENV: test
+          PGHOST: 127.0.0.1
+          PGUSER: postgres
           CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
-          RAILS_MASTER_KEY: $RAILS_MASTER_KEY
-      - image: circleci/postgres:13.2
+      - image: cimg/postgres:14.5
         environment:
+          POSTGRES_DB: circleci_test
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
     steps:
       - checkout
@@ -93,7 +98,6 @@ jobs:
                               --format RspecJunitFormatter \
                               --out /tmp/test-results/rspec.xml \
                               --format progress \
-                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
           when: always
 
       - store_test_results:

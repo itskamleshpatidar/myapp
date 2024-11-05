@@ -60,5 +60,8 @@ group :test do
   gem "rails-controller-testing"
   gem "factory_bot_rails"
   gem "faker"
+  gem 'simplecov', require: false
+  gem 'codeclimate-test-reporter'
+  gem 'rspec_junit_formatter'
 end
 gem "importmap-rails"
